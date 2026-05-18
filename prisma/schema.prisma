@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Project {
+  id                String         @id @default(cuid())
+  name              String
+  initiative        String?
+  backgroundContext String?
+  analysisGoal      String?
+  currentStage      String         @default("Project")
+  status            String         @default("draft")
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  inputs            ProjectInput[]
+  insightRuns       InsightRun[]
+  reportRuns        ReportRun[]
+  prdRuns           PrdRun[]
+  taskRuns          TaskRun[]
+}
+
+model ProjectInput {
+  id          String   @id @default(cuid())
+  projectId   String
+  inputType   String   @default("raw_text")
+  title       String?
+  contentText String
+  contentJson String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model InsightRun {
+  id                  String   @id @default(cuid())
+  projectId            String
+  status              String   @default("completed")
+  summary             String
+  themesJson          String
+  painPointsJson      String
+  featureRequestsJson String
+  repeatedSignalsJson String
+  priorityCuesJson    String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ReportRun {
+  id                String   @id @default(cuid())
+  projectId          String
+  status            String   @default("completed")
+  executiveSummary  String
+  keyFindingsJson   String
+  topProblemsJson   String
+  opportunitiesJson String
+  recommendedFocus  String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model PrdRun {
+  id               String   @id @default(cuid())
+  projectId         String
+  status           String   @default("completed")
+  problemStatement String
+  goalsText        String
+  targetUsersText  String
+  scopeText        String
+  nonGoalsText     String
+  successMetricsText String
+  risksText        String
+  openQuestionsText String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model TaskRun {
+  id                     String   @id @default(cuid())
+  projectId               String
+  status                 String   @default("completed")
+  workBucketsJson        String
+  tasksJson              String
+  userStoriesJson        String
+  acceptanceCriteriaJson String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  project                Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
