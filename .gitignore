@@ -62,9 +62,11 @@ dev.db
 
 # Local Prisma engine binaries
 .prisma-engines
+.prisma-engines/
 
 # Prisma local generated files / migrations cache
 prisma/dev.db
 
 # Local environment
+.env
 .env.*
