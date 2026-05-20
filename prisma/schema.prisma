@@ -8,6 +8,7 @@ datasource db {
 
 model Project {
   id                String         @id @default(cuid())
+  ownerId           String?
   name              String
   initiative        String?
   backgroundContext String?

@@ -6,9 +6,9 @@ import { UpdatePrdDto } from './dto/update-prd.dto';
 export class PrdService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async generate(projectId: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+  async generate(projectId: string, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, ownerId },
     });
 
     if (!project) {
@@ -58,7 +58,15 @@ export class PrdService {
     return prd;
   }
 
-  async findLatest(projectId: string) {
+  async findLatest(projectId: string, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, ownerId },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
     const prd = await this.prisma.prdRun.findFirst({
       where: { projectId },
       orderBy: { createdAt: 'desc' },
@@ -71,7 +79,15 @@ export class PrdService {
     return prd;
   }
 
-  async updateLatest(projectId: string, input: UpdatePrdDto) {
+  async updateLatest(projectId: string, input: UpdatePrdDto, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, ownerId },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
     const latestPrd = await this.prisma.prdRun.findFirst({
       where: { projectId },
       orderBy: { createdAt: 'desc' },

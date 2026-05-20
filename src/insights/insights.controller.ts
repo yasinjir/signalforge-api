@@ -1,17 +1,27 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthUser } from '../auth/auth.types';
+import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 import { InsightsService } from './insights.service';
 
+@UseGuards(SupabaseAuthGuard)
 @Controller('projects/:projectId/insights')
 export class InsightsController {
   constructor(private readonly insightsService: InsightsService) {}
 
   @Post('generate')
-  generate(@Param('projectId') projectId: string) {
-    return this.insightsService.generate(projectId);
+  generate(
+    @CurrentUser() user: AuthUser,
+    @Param('projectId') projectId: string,
+  ) {
+    return this.insightsService.generate(projectId, user.id);
   }
 
   @Get('latest')
-  findLatest(@Param('projectId') projectId: string) {
-    return this.insightsService.findLatest(projectId);
+  findLatest(
+    @CurrentUser() user: AuthUser,
+    @Param('projectId') projectId: string,
+  ) {
+    return this.insightsService.findLatest(projectId, user.id);
   }
 }

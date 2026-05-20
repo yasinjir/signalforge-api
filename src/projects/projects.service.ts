@@ -12,9 +12,10 @@ type CreateProjectInput = {
 export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(input: CreateProjectInput) {
+  create(input: CreateProjectInput, ownerId: string) {
     return this.prisma.project.create({
       data: {
+        ownerId,
         name: input.name,
         initiative: input.initiative,
         backgroundContext: input.backgroundContext,
@@ -25,23 +26,30 @@ export class ProjectsService {
     });
   }
 
-  findAll() {
+  findAll(ownerId: string) {
     return this.prisma.project.findMany({
+      where: { ownerId },
       orderBy: {
         updatedAt: 'desc',
       },
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.project.findUnique({
-      where: { id },
+  async findOne(id: string, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id, ownerId },
     });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    return project;
   }
 
-  async findWorkspace(id: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id },
+  async findWorkspace(id: string, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id, ownerId },
     });
 
     if (!project) {
@@ -166,7 +174,10 @@ export class ProjectsService {
       workBuckets: this.safeJsonParse(taskRun.workBucketsJson, []),
       tasks: this.safeJsonParse(taskRun.tasksJson, []),
       userStories: this.safeJsonParse(taskRun.userStoriesJson, []),
-      acceptanceCriteria: this.safeJsonParse(taskRun.acceptanceCriteriaJson, []),
+      acceptanceCriteria: this.safeJsonParse(
+        taskRun.acceptanceCriteriaJson,
+        [],
+      ),
       createdAt: taskRun.createdAt,
       updatedAt: taskRun.updatedAt,
     };

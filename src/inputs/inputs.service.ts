@@ -6,9 +6,16 @@ import { CreateProjectInputDto } from './dto/create-project-input.dto';
 export class InputsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(projectId: string, input: CreateProjectInputDto) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+  async create(
+    projectId: string,
+    input: CreateProjectInputDto,
+    ownerId: string,
+  ) {
+    const project = await this.prisma.project.findFirst({
+      where: {
+        id: projectId,
+        ownerId,
+      },
     });
 
     if (!project) {
@@ -36,7 +43,18 @@ export class InputsService {
     return createdInput;
   }
 
-  findByProject(projectId: string) {
+  async findByProject(projectId: string, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: {
+        id: projectId,
+        ownerId,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
     return this.prisma.projectInput.findMany({
       where: { projectId },
       orderBy: { createdAt: 'desc' },

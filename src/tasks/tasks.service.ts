@@ -5,9 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async generate(projectId: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+  async generate(projectId: string, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, ownerId },
     });
 
     if (!project) {
@@ -113,7 +113,15 @@ export class TasksService {
     return this.formatTaskRun(taskRun);
   }
 
-  async findLatest(projectId: string) {
+  async findLatest(projectId: string, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, ownerId },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
     const taskRun = await this.prisma.taskRun.findFirst({
       where: { projectId },
       orderBy: { createdAt: 'desc' },

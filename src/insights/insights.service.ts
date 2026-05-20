@@ -5,9 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 export class InsightsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async generate(projectId: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+  async generate(projectId: string, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, ownerId },
       include: {
         inputs: true,
       },
@@ -77,7 +77,15 @@ export class InsightsService {
     return this.formatInsight(insight);
   }
 
-  async findLatest(projectId: string) {
+  async findLatest(projectId: string, ownerId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, ownerId },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
     const insight = await this.prisma.insightRun.findFirst({
       where: { projectId },
       orderBy: { createdAt: 'desc' },

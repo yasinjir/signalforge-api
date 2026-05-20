@@ -40,18 +40,38 @@ Example (production):
 GET https://signalforge-api.vercel.app/api/health
 ```
 
+Health endpoints are **public** (no auth required).
+
+## Authentication
+
+Product API routes require a Supabase Auth access token:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+The backend verifies the JWT with Supabase (`SUPABASE_URL` + `SUPABASE_ANON_KEY`) and scopes all project data to the authenticated user’s `ownerId`.
+
+- Missing or invalid token → `401 Unauthorized`
+- Project not owned by the user → `404 Project not found` (no cross-user leakage)
+- Legacy projects with `ownerId = null` are hidden from authenticated users
+
+Obtain the access token from the frontend after Supabase sign-in.
+
 ## Main API endpoints
 
 Base URL in production: `https://signalforge-api.vercel.app`
+
+All endpoints below require `Authorization: Bearer <access_token>` unless noted.
 
 ### Projects
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/projects` | List all projects |
-| `POST` | `/projects` | Create a project |
-| `GET` | `/projects/:id` | Get one project |
-| `GET` | `/projects/:id/workspace` | Full workspace (project, inputs, latest runs) |
+| `GET` | `/projects` | List projects for the current user |
+| `POST` | `/projects` | Create a project (sets `ownerId`) |
+| `GET` | `/projects/:id` | Get one project (must be owned) |
+| `GET` | `/projects/:id/workspace` | Full workspace (must be owned) |
 
 ### Workspace response
 
@@ -116,7 +136,13 @@ Base URL in production: `https://signalforge-api.vercel.app`
 
    On macOS/Linux: `cp .env.example .env`
 
-3. Set `DATABASE_URL` in `.env` to your Supabase pooler URL (or another Postgres instance). **Do not commit `.env`.**
+3. Set in `.env` (see `.env.example`):
+
+   - `DATABASE_URL` — Supabase pooler URL
+   - `SUPABASE_URL` — Supabase project URL
+   - `SUPABASE_ANON_KEY` — Supabase anon/public key
+
+   **Do not commit `.env`.**
 
 4. Start the API in watch mode:
 
@@ -149,6 +175,8 @@ Compiles NestJS to `dist/`. Vercel builds serverless handlers from `api/` separa
    |----------|--------|
    | `DATABASE_URL` | Supabase pooler connection string |
    | `NODE_ENV` | `production` |
+   | `SUPABASE_URL` | `https://<project-ref>.supabase.co` |
+   | `SUPABASE_ANON_KEY` | Supabase anon key (Project Settings → API) |
 
 3. Deploy. Vercel uses native `/api` functions:
 
@@ -160,6 +188,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for smoke tests and frontend config
 ## Supabase notes
 
 - Postgres schema matches `prisma/schema.prisma` (`Project`, `ProjectInput`, `InsightRun`, `ReportRun`, `PrdRun`, `TaskRun`).
+- `Project.ownerId` links rows to Supabase Auth users (add column manually in SQL Editor if not already applied).
 - Tables were created manually in the Supabase SQL Editor.
 - Local migration to Supabase was skipped when the pooler was unreachable from the developer machine.
 - Never commit database credentials; use Vercel env vars in production and `.env` locally (gitignored).
@@ -176,9 +205,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for smoke tests and frontend config
 
 ## Next backlog
 
-- Supabase Auth
-- `ownerId` / `userId` on `Project`
-- Per-user project isolation
+- Archive / delete project
 - Archive / delete project
 - Real LLM generation pipeline (replace MVP sample generators)
 - Workspace hydration improvements (pagination, partial loads)
