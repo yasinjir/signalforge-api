@@ -16,6 +16,11 @@ export class ProjectsController {
     return this.projectsService.findAll();
   }
 
+  @Get(':id/workspace')
+  findWorkspace(@Param('id') id: string) {
+    return this.projectsService.findWorkspace(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(id);
