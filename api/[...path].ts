@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import express from 'express';
 import serverless from 'serverless-http';
 import { NestFactory } from '@nestjs/core';
@@ -10,10 +11,9 @@ let cachedHandler: ReturnType<typeof serverless> | null = null;
 async function bootstrap() {
   const expressApp = express();
 
-  const app = await NestFactory.create(
-    AppModule,
-    new ExpressAdapter(expressApp),
-  );
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp), {
+    logger: ['error', 'warn', 'log'],
+  });
 
   app.enableCors({
     origin: true,
@@ -31,7 +31,9 @@ async function bootstrap() {
 
   await app.init();
 
-  return serverless(expressApp);
+  return serverless(expressApp, {
+    basePath: '/api',
+  });
 }
 
 export default async function handler(req: any, res: any) {
