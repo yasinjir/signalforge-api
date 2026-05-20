@@ -70,3 +70,4 @@ prisma/dev.db
 # Local environment
 .env
 .env.*
+!.env.example
