@@ -82,7 +82,25 @@ GET https://signalforge-api.vercel.app/projects
 Authorization: Bearer <ACCESS_TOKEN>
 ```
 
-Expected: `[]` or a JSON array of projects owned by that user.
+Expected: `[]` or a JSON array of projects owned by that user (archived projects excluded unless `?includeArchived=true`).
+
+```http
+PATCH https://signalforge-api.vercel.app/projects/{PROJECT_ID}
+Authorization: Bearer <ACCESS_TOKEN>
+Content-Type: application/json
+
+{ "name": "Updated name" }
+```
+
+```http
+PATCH https://signalforge-api.vercel.app/projects/{PROJECT_ID}/archive
+Authorization: Bearer <ACCESS_TOKEN>
+```
+
+```http
+DELETE https://signalforge-api.vercel.app/projects/{PROJECT_ID}
+Authorization: Bearer <ACCESS_TOKEN>
+```
 
 ```http
 GET https://signalforge-api.vercel.app/projects/{PROJECT_ID}/workspace

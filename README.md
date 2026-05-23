@@ -74,10 +74,22 @@ All endpoints below require `Authorization: Bearer <access_token>` unless noted.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/projects` | List projects for the current user |
+| `GET` | `/projects` | List projects for the current user (optional filters) |
 | `POST` | `/projects` | Create a project (sets `ownerId`) |
 | `GET` | `/projects/:id` | Get one project (must be owned) |
 | `GET` | `/projects/:id/workspace` | Full workspace (must be owned) |
+| `PATCH` | `/projects/:id` | Update project metadata (must be owned) |
+| `PATCH` | `/projects/:id/archive` | Archive project (`status = archived`) |
+| `DELETE` | `/projects/:id` | Delete project and related data (cascade) |
+
+**List query parameters** (`GET /projects`):
+
+| Parameter | Description |
+|-----------|-------------|
+| `search` | Case-insensitive match on `name`, `initiative`, `backgroundContext`, `analysisGoal` |
+| `stage` | Filter by `currentStage` |
+| `status` | Filter by `status` |
+| `includeArchived` | Set to `true` to include archived projects; default excludes `status=archived` |
 
 ### Workspace response
 
@@ -211,7 +223,6 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for smoke tests and frontend config
 
 ## Next backlog
 
-- Archive / delete project
 - Real LLM generation pipeline (replace MVP sample generators)
 - Workspace hydration improvements (pagination, partial loads)
 - Better production error logging and observability

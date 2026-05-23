@@ -1,5 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { ListProjectsQueryDto } from './dto/list-projects-query.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 
 type CreateProjectInput = {
   name: string;
@@ -26,9 +29,29 @@ export class ProjectsService {
     });
   }
 
-  findAll(ownerId: string) {
+  findAll(ownerId: string, query: ListProjectsQueryDto = {}) {
+    const { search, stage, status, includeArchived } = query;
+    const includeArchivedProjects = includeArchived === 'true';
+
+    const where: Prisma.ProjectWhereInput = {
+      ownerId,
+      ...(includeArchivedProjects ? {} : { status: { not: 'archived' } }),
+      ...(stage ? { currentStage: stage } : {}),
+      ...(status ? { status } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { initiative: { contains: search, mode: 'insensitive' } },
+              { backgroundContext: { contains: search, mode: 'insensitive' } },
+              { analysisGoal: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+
     return this.prisma.project.findMany({
-      where: { ownerId },
+      where,
       orderBy: {
         updatedAt: 'desc',
       },
@@ -36,6 +59,56 @@ export class ProjectsService {
   }
 
   async findOne(id: string, ownerId: string) {
+    return this.findOwnedOrThrow(id, ownerId);
+  }
+
+  async update(id: string, ownerId: string, input: UpdateProjectDto) {
+    await this.findOwnedOrThrow(id, ownerId);
+
+    const data: Prisma.ProjectUpdateInput = {};
+
+    if (input.name !== undefined) {
+      data.name = input.name;
+    }
+    if (input.initiative !== undefined) {
+      data.initiative = input.initiative;
+    }
+    if (input.backgroundContext !== undefined) {
+      data.backgroundContext = input.backgroundContext;
+    }
+    if (input.analysisGoal !== undefined) {
+      data.analysisGoal = input.analysisGoal;
+    }
+    if (input.status !== undefined) {
+      data.status = input.status;
+    }
+
+    return this.prisma.project.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async archive(id: string, ownerId: string) {
+    await this.findOwnedOrThrow(id, ownerId);
+
+    return this.prisma.project.update({
+      where: { id },
+      data: { status: 'archived' },
+    });
+  }
+
+  async remove(id: string, ownerId: string) {
+    await this.findOwnedOrThrow(id, ownerId);
+
+    await this.prisma.project.delete({
+      where: { id },
+    });
+
+    return { deleted: true, id };
+  }
+
+  private async findOwnedOrThrow(id: string, ownerId: string) {
     const project = await this.prisma.project.findFirst({
       where: { id, ownerId },
     });
@@ -48,13 +121,7 @@ export class ProjectsService {
   }
 
   async findWorkspace(id: string, ownerId: string) {
-    const project = await this.prisma.project.findFirst({
-      where: { id, ownerId },
-    });
-
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
+    const project = await this.findOwnedOrThrow(id, ownerId);
 
     const [inputs, latestInsight, latestReport, latestPrd, latestTaskRun] =
       await Promise.all([
