@@ -1,8 +1,14 @@
 # SignalForge API
 
-Backend for **SignalForge**, a product-operations platform that turns raw product feedback into structured insights, reports, PRDs, and execution-ready tasks.
+Open-source backend for **SignalForge**, a product-operations platform that turns raw product feedback into structured insights, reports, PRDs, and execution-ready tasks.
 
 **Product flow:** Project → Inputs → Insights → Report → PRD → Tasks
+
+## Open-source status
+
+SignalForge is being developed as an open-source product operations platform.
+
+This repository contains the API backend. Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). For security reports, see [SECURITY.md](SECURITY.md). Community standards are in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## What it does
 
@@ -206,11 +212,10 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for smoke tests and frontend config
 ## Next backlog
 
 - Archive / delete project
-- Archive / delete project
 - Real LLM generation pipeline (replace MVP sample generators)
 - Workspace hydration improvements (pagination, partial loads)
 - Better production error logging and observability
 
 ## License
 
-UNLICENSED — private project.
+This project is licensed under the [MIT License](LICENSE).

@@ -1,10 +1,10 @@
 {
   "name": "signalforge-api",
   "version": "0.0.1",
-  "description": "<p align=\"center\">\r   <a href=\"http://nestjs.com/\" target=\"blank\"><img src=\"https://nestjs.com/img/logo-small.svg\" width=\"120\" alt=\"Nest Logo\" /></a>\r </p>",
-  "author": "",
+  "description": "SignalForge product operations platform: feedback to insights, PRDs, and execution-ready tasks.",
+  "author": "Yasin Jirsaraei",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
